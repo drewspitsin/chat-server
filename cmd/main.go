@@ -50,7 +50,3 @@ func main() {
 	s.GracefulStop()
 	fmt.Println(color.YellowString("Auth_api server closed..."))
 }
-
-func NewChatV1Server() {
-	panic("unimplemented")
-}
