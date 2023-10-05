@@ -12,27 +12,31 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/drewspitsin/chat-server/internal/config"
+	"github.com/drewspitsin/chat-server/internal/grpc_api"
 	desc "github.com/drewspitsin/chat-server/pkg/chat_api_v1"
 )
 
-const grpcPort = 50051
-
-type server struct {
-	desc.UnimplementedChat_API_V1Server
-}
-
 func main() {
-	great_quit := make(chan os.Signal, 1)
-	signal.Notify(great_quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	greatQuit := make(chan os.Signal, 1)
+	signal.Notify(greatQuit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Server.GRPCPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterChat_API_V1Server(s, &server{})
+
+	server := grpc_api.NewChatV1Server()
+	desc.RegisterChatV1Server(s, server)
 
 	log.Printf("server listening at %v", lis.Addr())
 
@@ -42,7 +46,11 @@ func main() {
 		}
 	}()
 
-	<-great_quit
+	<-greatQuit
 	s.GracefulStop()
 	fmt.Println(color.YellowString("Auth_api server closed..."))
+}
+
+func NewChatV1Server() {
+	panic("unimplemented")
 }
