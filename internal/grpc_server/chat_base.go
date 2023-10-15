@@ -5,23 +5,22 @@ import (
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/brianvoe/gofakeit"
 	desc "github.com/drewspitsin/chat-server/pkg/chat_api_v1"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
-// id serial primary key,
-// UserName text not null,
-// Email text not null,
-// Pswd text not null,
-// created_at timestamp not null default now(),
-// updated_at timestamp
+const (
+	table    = "chat_server"
+	id       = "id"
+	username = "username"
+	msg      = "msg"
+)
 
 func (s *ChatV1Server) CreatePg(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	builderInsert := sq.Insert("chat_server").
+	builderInsert := sq.Insert(table).
 		PlaceholderFormat(sq.Dollar).
-		Columns("msg").
-		Values(gofakeit.City()).
+		Columns(username, msg).
+		Values(req.Usernames, req.Msg).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -29,23 +28,39 @@ func (s *ChatV1Server) CreatePg(ctx context.Context, req *desc.CreateRequest) (*
 		log.Fatalf("failed to build query: %v", err)
 	}
 
-	var chat_serverID int64
-	err = s.pool.QueryRow(ctx, query, args...).Scan(&chat_serverID)
+	var chatServerID int64
+	err = s.pool.QueryRow(ctx, query, args...).Scan(&chatServerID)
 	if err != nil {
 		log.Fatalf("failed to insert chat_server: %v", err)
 	}
 
-	log.Printf("inserted chat_server with id: %d", chat_serverID)
+	log.Printf("inserted chat_server with id: %d", chatServerID)
 
 	return &desc.CreateResponse{
-		Id: chat_serverID,
+		Id: chatServerID,
 	}, nil
 }
 
 func (s *ChatV1Server) DeletePg(ctx context.Context, req *desc.DeleteRequest) (*empty.Empty, error) {
+	builderInsert := sq.Delete(table).
+		Where(sq.Eq{id: req.GetId()}).
+		PlaceholderFormat(sq.Dollar)
+	query, args, err := builderInsert.ToSql()
+	if err != nil {
+		log.Fatalf("failed to build query: %v", err)
+		return nil, err
+	}
+
+	res, err := s.pool.Exec(ctx, query, args...)
+	if err != nil {
+		log.Fatalf("failed to update note: %v tag: %v", err, res)
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 func (s *ChatV1Server) SendMessagePg(ctx context.Context, req *desc.SendRequest) (*empty.Empty, error) {
+	// Принцип работы
 	return nil, nil
 }

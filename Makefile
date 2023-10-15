@@ -37,7 +37,7 @@ copy-to-server:
 	scp .env root@89.104.117.12:
 
 docker-build-and-push:
-	docker buildx build --no-cache --platform linux/amd64 -t cr.selcloud.ru/ester-registry/test-server:v0.0.1 .
+	docker buildx build --no-cache --platform linux/amd64 -t cr.selcloud.ru/ester-registry/chat-server:v0.0.1 .
 	docker login -u token -p CRgAAAAARPpNb1U5QUx83Ivvaz9cMQxXEdctTfKA cr.selcloud.ru/ester-registry
 	docker push cr.selcloud.ru/ester-registry/test-server:v0.0.1
 
