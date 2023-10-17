@@ -1,3 +1,5 @@
+include .env
+
 LOCAL_BIN:=$(CURDIR)/bin
 
 install-golangci-lint:
@@ -26,3 +28,30 @@ generate-chat-api:
 	--go-grpc_out=pkg/chat_api_v1 --go-grpc_opt=paths=source_relative \
 	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 	api/chat_api/chat_api_v1.proto
+
+build:
+	GOOS=linux GOARCH=amd64 go build -o service_linux cmd/main.go
+
+copy-to-server:
+	scp service_linux root@89.104.117.12:
+	scp .env root@89.104.117.12:
+
+docker-build-and-push:
+	docker buildx build --no-cache --platform linux/amd64 -t cr.selcloud.ru/ester-registry/chat-server:v0.0.1 .
+	docker login -u token -p CRgAAAAARPpNb1U5QUx83Ivvaz9cMQxXEdctTfKA cr.selcloud.ru/ester-registry
+	docker push cr.selcloud.ru/ester-registry/test-server:v0.0.1
+
+LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
+LOCAL_MIGRATION_DSN="host=localhost port=$(PG_PORT) dbname=$(PG_DATABASE_NAME) user=$(PG_USER) password=$(PG_PASSWORD) sslmode=disable"
+
+local-migration-status:
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} status -v
+
+local-migration-up:
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} up -v
+
+local-migration-down:
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
+
+
+

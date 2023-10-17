@@ -1,20 +1,25 @@
-package grpc_api
+package grpc_server
 
 import (
 	"context"
 
 	desc "github.com/drewspitsin/chat-server/pkg/chat_api_v1"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // ChatV1Server
 type ChatV1Server struct {
 	desc.UnimplementedChatV1Server
+	pool *pgxpool.Pool
 }
 
 // NewChatV1Server returns a new ChatV1Server instance
-func NewChatV1Server() *ChatV1Server {
-	return &ChatV1Server{}
+func NewChatV1Server(p *pgxpool.Pool) *ChatV1Server {
+	return &ChatV1Server{
+		UnimplementedChatV1Server: desc.UnimplementedChatV1Server{},
+		pool:                      p,
+	}
 }
 
 // Create is a method that implements the Create method of the ChatV1Server
