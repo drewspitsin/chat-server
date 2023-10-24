@@ -14,13 +14,10 @@ func ToChatFromDescCreate(chat *desc.CreateRequest) *model.Chat {
 	}
 }
 
-func ToChatFromDescDelete(chat *desc.DeleteRequest) *model.Chat {
+func ToChatFromDescDelete(chat *desc.DeleteRequest) int64 {
 
-	return &model.Chat{
-		ID:   chat.Id,
-		Name: "",
-		Msg:  "",
-	}
+	return chat.Id
+
 }
 
 func ToChatFromDescSend(chat *desc.SendRequest) *model.Chat {

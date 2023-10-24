@@ -12,7 +12,8 @@ import (
 func (i *Implementation) Send(ctx context.Context, req *desc.SendRequest) (*empty.Empty, error) {
 	err := i.chatService.Send(ctx, converter.ToChatFromDescSend(req))
 	if err != nil {
-		return &emptypb.Empty{}, err
+		return nil, err
 	}
+
 	return &emptypb.Empty{}, nil
 }
