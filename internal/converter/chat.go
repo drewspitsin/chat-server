@@ -6,7 +6,6 @@ import (
 )
 
 func ToChatFromDescCreate(chat *desc.CreateRequest) *model.Chat {
-
 	return &model.Chat{
 		ID:   0,
 		Name: chat.Username,
@@ -15,16 +14,12 @@ func ToChatFromDescCreate(chat *desc.CreateRequest) *model.Chat {
 }
 
 func ToChatFromDescDelete(chat *desc.DeleteRequest) int64 {
-
 	return chat.Id
 
 }
 
 func ToChatFromDescSend(chat *desc.SendRequest) *model.Chat {
-
 	return &model.Chat{
-		ID:   0,
-		Name: "",
-		Msg:  "",
+		ID: 0,
 	}
 }
