@@ -26,7 +26,7 @@ func NewRepository(dbClient db.Client) repository.ChatRepository {
 	return &repo{db: dbClient}
 }
 
-func (s *repo) Create(ctx context.Context, info *model.Chat) (int64, error) {
+func (r *repo) Create(ctx context.Context, info *model.Chat) (int64, error) {
 	builderInsert := sq.Insert(table).
 		PlaceholderFormat(sq.Dollar).
 		Columns(username, msg).
@@ -44,7 +44,7 @@ func (s *repo) Create(ctx context.Context, info *model.Chat) (int64, error) {
 	}
 
 	var chatServerID int64
-	err = s.db.DB().QueryRowContext(ctx, q, args...).Scan(&chatServerID)
+	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&chatServerID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to insert chat_server: %v", err)
 	}
@@ -54,9 +54,9 @@ func (s *repo) Create(ctx context.Context, info *model.Chat) (int64, error) {
 	return chatServerID, nil
 }
 
-func (s *repo) Delete(ctx context.Context, id_d int64) error {
+func (r *repo) Delete(ctx context.Context, deleteID int64) error {
 	builderInsert := sq.Delete(table).
-		Where(sq.Eq{id: id_d}).
+		Where(sq.Eq{id: deleteID}).
 		PlaceholderFormat(sq.Dollar)
 	query, args, err := builderInsert.ToSql()
 	if err != nil {
@@ -66,7 +66,7 @@ func (s *repo) Delete(ctx context.Context, id_d int64) error {
 		Name:     "chat_repository.Delete",
 		QueryRaw: query,
 	}
-	res, err := s.db.DB().ExecContext(ctx, q, args...)
+	res, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update note: %v tag: %v", err, res)
 	}
@@ -74,6 +74,6 @@ func (s *repo) Delete(ctx context.Context, id_d int64) error {
 	return nil
 }
 
-func (s *repo) Send(ctx context.Context, info *model.Chat) error {
+func (r *repo) Send(ctx context.Context, info *model.Chat) error {
 	return nil
 }
