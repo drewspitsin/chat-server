@@ -1,9 +1,9 @@
 -- +goose Up
-create table chat_server (
+create table chats (
     id serial primary key,
     username text not null,
     msg text not null
 );
 
 -- +goose Down
-drop table chat_server;
+drop table chats;
