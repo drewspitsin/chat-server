@@ -20,3 +20,16 @@ func NewService(
 		txManager:      txManager,
 	}
 }
+
+func NewMockService(deps ...interface{}) service.ChatService {
+	srv := serv{}
+
+	for _, v := range deps {
+		switch s := v.(type) {
+		case repository.ChatRepository:
+			srv.chatRepository = s
+		}
+	}
+
+	return &srv
+}
