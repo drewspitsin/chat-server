@@ -8,6 +8,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gojuno/minimock/v3"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/drewspitsin/chat-server/internal/client/db"
@@ -34,9 +35,7 @@ func (t *TxMock) Rollback(_ context.Context) error {
 func TestCreate(t *testing.T) {
 	t.Parallel()
 	type chatRepositoryMockFunc func(mc *minimock.Controller) repository.ChatRepository
-
 	type txTransactorMockFunc func(mc *minimock.Controller) db.Transactor
-	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
 
 	type args struct {
 		ctx context.Context
@@ -70,7 +69,6 @@ func TestCreate(t *testing.T) {
 		err                error
 		chatRepositoryMock chatRepositoryMockFunc
 		txTransactorMock   txTransactorMockFunc
-		txManagerMock      txManagerMockFunc
 	}{
 		{
 			name: "success case",
@@ -104,9 +102,9 @@ func TestCreate(t *testing.T) {
 				return mock
 			},
 
-			txManagerMock: func(mc *minimock.Controller) db.TxManager {
-				mock := txMocks.NewTxManagerMock(mc)
-				mock.ReadCommittedMock.Return(repoErr)
+			txTransactorMock: func(mc *minimock.Controller) db.Transactor {
+				mock := txMocks.NewTransactorMock(mc)
+				mock.BeginTxMock.Return(nil, repoErr)
 				return mock
 			},
 		},
@@ -116,20 +114,15 @@ func TestCreate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
+			authRepoMock := tt.chatRepositoryMock(mc)
+			txTransact := transaction.NewTransactionManager(tt.txTransactorMock(mc))
+			service := chat.NewService(authRepoMock, txTransact)
+			newID, err := service.Create(tt.args.ctx, tt.args.req)
 			if tt.name == "service error case" {
-				authRepoMock := tt.chatRepositoryMock(mc)
-				tx := tt.txManagerMock(mc)
-				service := chat.NewService(authRepoMock, tx)
-				newID, err := service.Create(tt.args.ctx, tt.args.req)
-				require.Equal(t, tt.err, err)
-				require.Equal(t, tt.want, newID)
+				require.NotNil(t, err)
+				require.Equal(t, errors.Wrap(tt.err, "can't begin transaction").Error(), err.Error())
 			} else {
-				authRepoMock := tt.chatRepositoryMock(mc)
-				txTransact := transaction.NewTransactionManager(tt.txTransactorMock(mc))
-				service := chat.NewService(authRepoMock, txTransact)
-				newID, err := service.Create(tt.args.ctx, tt.args.req)
-				require.Equal(t, tt.err, err)
+				require.Nil(t, err)
 				require.Equal(t, tt.want, newID)
 			}
 
