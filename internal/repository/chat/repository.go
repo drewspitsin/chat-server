@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	table    = "chat_server"
+	table    = "chats"
 	id       = "id"
 	username = "username"
 	msg      = "msg"
