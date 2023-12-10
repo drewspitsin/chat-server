@@ -73,7 +73,3 @@ func (r *repo) Delete(ctx context.Context, deleteID int64) error {
 
 	return nil
 }
-
-func (r *repo) Send(ctx context.Context, info *model.Chat) error {
-	return nil
-}
